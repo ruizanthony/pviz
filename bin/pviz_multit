@@ -1,0 +1,14 @@
+#!/bin/bash
+# Get and test inputs
+if [ ! $# -ge 3 ]; then
+  echo "Wrong number of arguments
+  usage : multit ncpus script matchPattern
+  for instance: multit 8 post_generic.sh *.xmf"
+  exit
+fi
+ncpus=$1
+script=$2
+shift 2 # Remove $1 and $2 from $@
+
+list_of_files=$@
+echo $list_of_files|xargs -d ' ' -n 1 -P$ncpus -I {} $script {}

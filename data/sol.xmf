@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">
+  <Domain>
+    <Grid GridType="Uniform">
+      <Topology TopologyType="Mixed" Dimensions="180500">
+        <DataItem Dimensions="1622836" NumberType="Int" Precision="8" Format="HDF">/Users/amruiz/workspace/ruizCFD/PYTHON/sandbox/Animation/sol.h5:/Data16186</DataItem>
+      </Topology>
+      <Geometry GeometryType="XYZ">
+        <DataItem Dimensions="192700 3" NumberType="Float" Precision="4" Format="HDF">/Users/amruiz/workspace/ruizCFD/PYTHON/sandbox/Animation/sol.h5:/Data16187</DataItem>
+      </Geometry>
+      <Time TimeType="Single" Value="1930"/>
+      <Attribute Name="T_s" Active="1" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="180500" NumberType="Float" Precision="4" Format="HDF">/Users/amruiz/workspace/ruizCFD/PYTHON/sandbox/Animation/sol.h5:/Data16188</DataItem>
+      </Attribute>
+      <Attribute Name="u_s" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="180500" NumberType="Float" Precision="4" Format="HDF">/Users/amruiz/workspace/ruizCFD/PYTHON/sandbox/Animation/sol.h5:/Data16189</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>

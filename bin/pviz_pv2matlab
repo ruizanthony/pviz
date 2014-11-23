@@ -1,0 +1,28 @@
+#!/bin/bash
+
+for pvFile in $@
+do
+
+  echo "Substituting paraview var into classical var in file : ",$pvFile
+
+  tmpPvFile="tmp_$pvFile"
+  
+  sed -e 's/"//g'                   \
+      -e 's/arc_length/Distance/g'  \
+      -e 's/Points:0/x/g'           \
+      -e 's/Points:1/y/g'           \
+      -e 's/Points:2/z/g'           \
+      -e 's/velocity:0/u/g'         \
+      -e 's/velocity:1/v/g'         \
+      -e 's/velocity:2/w/g'         \
+      -e 's/:0/_x/g'         \
+      -e 's/:1/_y/g'         \
+      -e 's/:2/_z/g'         \
+      $pvFile > $tmpPvFile
+
+  # Remove Lines containing NaNs
+  cat $tmpPvFile |grep -v nan > $pvFile
+
+  rm $tmpPvFile
+
+done
