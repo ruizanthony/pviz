@@ -456,8 +456,10 @@ class viz:
       # For CameraViewAngle, only one parameter is needed
       if PropertyName == 'CameraViewAngle':
         exec "self.view."+PropertyName+" = "+str(cameraCoor[0])
-      else:
-      # For CameraPosition, CameraFocalPoint, CameraViewUp and CenterOfRotation, 3 parameters are needed
+      # For other properties 3 parameters are needed
+      # (Note that the new parameters: CameraParallelScale and CameraParallelProjection
+      #  are not handled by this method)
+      elif PropertyName in ['CameraPosition',"CameraFocalPoint","CameraViewUp","CenterOfRotation"]:
         exec "self.view."+PropertyName+"= ["+str(cameraCoor[0])+","+str(cameraCoor[1])+","+cameraCoor[2]+"]"
 
   def colorPartByVarName(self,part,varName,barPosition=None,repType='Surface',varRange=None):
@@ -716,7 +718,7 @@ def radialCut(O,R,npoints,thetaBegin,thetaEnd,thetaStep,axis,baseName='cut_radia
     line(O,B,npoints,fileName,idelete=idelete)
     theta = theta + thetaStep
 
-def showPointList(pointListName,ndim=2,sphereRadius=0.1,sphereColor=[1,0,0]): # default red sphere
+def showPointList(pointListName,sphereRadius=0.1,sphereColor=[1,0,0]): # default red sphere
 
   nr=0
   if os.path.isfile(pointListName):
@@ -730,13 +732,17 @@ def showPointList(pointListName,ndim=2,sphereRadius=0.1,sphereColor=[1,0,0]): # 
          y = float(words[1])
          z = float(words[2])
          print x,y,z
-         Spherex = Sphere()
-         Spherex.Center = [x, y, z]
-         Spherex.Radius = sphereRadius
-         sphereRep= Show()
-         sphereRep.DiffuseColor=sphereColor
+         makeSphere(O=[x,y,z],sphereRadius=sphereRadius,sphereColor=sphereColor)
   else:
     print "The file "+pointListName+" is missing!"
+
+def makeSphere(O,sphereRadius=0.1,sphereColor=[1,0,0]):
+         oSphere = Sphere()
+         oSphere.Center = O
+         oSphere.Radius = sphereRadius
+         sphereRep= Show()
+         sphereRep.DiffuseColor=sphereColor
+         return oSphere
 
 def saveAllFields(fname=None,dataType='PointData',iBar=1):
 # To be used within paraview GUI: color current part by all variables, rescale

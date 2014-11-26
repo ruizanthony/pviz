@@ -17,10 +17,10 @@
 .. _Download PVIZ: http://ruizanthony.net/pviz/download
 .. _Efficient parallel postprocessing: http://ruizanthony.net/pviz/docs/efficientParallelPostproc
 .. _Bullet Time: http://pviz.net/docs/advanced/bulletTime
-.. _PVIZ github repository: http://github/xxx
-.. _interactive examples: http://github/xxx/examples/interactive
-.. _simple examples: http://github/xxx/examples/interactive
-.. _advanced examples: http://github/xxx/examples/interactive
+.. _PVIZ github repository: https://github.com/ruizanthony/pviz
+.. _interactive examples: https://github.com/ruizanthony/pviz/tree/master/examples/interactive
+.. _simple examples: https://github.com/ruizanthony/pviz/tree/master/examples/interactive
+.. _advanced examples: https://github.com/ruizanthony/pviz/tree/master/examples/interactive
 
 .. ------------------------------------------
 
