@@ -19,21 +19,6 @@ For experts, using the macro provided in pviz enables to write compact post-proc
 
 `Detailed documentation is available here: http://ruizanthony.net/pviz/docs <http://ruizanthony.net/pviz/docs>`_
 
-==================================
-About Anthony Ruiz, PVIZ's creator
-==================================
-
-  Formal description:
-  Anthony Ruiz is currently a Post-doctoral fellow at Sandia National Labs.
-  has received
-
-  In a nutshell:
-    I have over six years of experience in CFD and I have learned that batch post-processing is very important.
-    Your post-processing tools must allow you to quickly undestand and present your simulation results.
-    PVIZ is the result of all these years working as a scientist, optimizing my workflow to convert data into information.
-    Using PVIZ saved me a lot of time and put the fun back into post-processing!
-    I hope you will enjoy it too, and that it will help humanity face the great scientific challenges of today!
-
 For more info:
-pviz.net
-ruizanthony.net
+`pviz.net <http://pviz.net>`_
+`ruizanthony.net <http://ruizanthony.net>`_
