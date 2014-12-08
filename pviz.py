@@ -99,6 +99,10 @@ class viz:
     if self.ext in ['.vts' , '.vtm', '.xmf' ,'.xdmf']:
       hidePart()
       case = mergeCleanD3() # This is an expensive macro (memory and CPU time), but it is necessary for clean cell2point
+      # IBC specific to raptor
+      ibcWallVarName='ibc_wall'
+      if ibcWallVarName in case.CellData.keys():
+        case = Threshold( Scalars=['CELLS', ibcWallVarName], ThresholdRange=[0.0, 0.1], AllScalars=1, UseContinuousCellRange=0 )
       if self.cell2point == 1:
         # Test if there is CellData, if so, transform it to PointData (linear variations of variables instead of piecewise constant)
         if len(case.CellData.values()) >= 1:
@@ -521,8 +525,6 @@ class barProperties:
     self.textColor=[ 0.0, 0.0, 0.0 ]
     self.Title    = None
     self.LookupTable = None
-    # By default, the font is Times, which looks better than Arial
-    self.FontFamily  = "Times"
     self.Orientation = Orientation
     if Orientation == 'Horizontal': # Horizontal Bar
       self.Position  = [0.25, 0.15] # x,y of bottom left corner
@@ -534,7 +536,7 @@ class barProperties:
 	  print 'Error with bar orientation, should be Horizontal or Vertical'
     self.TitleSize = 16
     self.TextSize  = 16
-    self.FontFamily="Times"
+    self.FontFamily="Times" # By default, the font is Times, which looks better than Arial
     self.NumberOfTableValues = NumberOfTableValues
 
   def setPosition(self,positionName):
@@ -993,7 +995,8 @@ def setViewDefaults(view):
     view.LightSwitch = 1
     view.LightIntensity = 0.3
     # View Resolution
-    view.ViewSize = [916,591]
+#     view.ViewSize = [916,591]
+    view.ViewSize = [900,600]
     view.UseOffscreenRenderingForScreenshots = 0
     Render()
 
