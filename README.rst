@@ -17,6 +17,8 @@ The emphasis of the PVIZ project is to help professionals in their everyday post
 For neophytes with post-processing with paraview, PVIZ provides the missing reference explaining how to use paraview in batch mode for practical problems.
 For experts, using the macro provided in pviz enables to write compact post-processing scripts that are easily maintanable and re-usable for multiple practical problems.
 
+`Detailed documentation is available here: http://ruizanthony.net/pviz/docs <http://ruizanthony.net/pviz/docs>`_
+
 ==================================
 About Anthony Ruiz, PVIZ's creator
 ==================================
