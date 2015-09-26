@@ -444,6 +444,7 @@ class viz:
     else:
       stringNite = str( int(self.view.ViewTime) ).zfill(9) # zero padding
       imageName = self.path+"/"+tag+"_"+stringNite+".png"
+    imageName=imageName.replace(" ","_") # Replace spaces by underscores
     print "Writing image ",imageName
     WriteImage(imageName, Magnification=self.quality )
 
