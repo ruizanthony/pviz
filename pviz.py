@@ -60,7 +60,10 @@ class viz:
       case = EnSightReader( CaseFileName=fileName )
       self.timeVector = case.TimestepValues.GetData()
     elif self.ext in ['.xdmf', '.xmf']:
-      case = XDMFReader( FileName=fileName )
+      try:    # For paraview version < 4.4
+        case = XDMFReader( FileName=fileName )
+      except: # For paraview version 4.4
+        case = XDMFReader( FileNames=[fileName])
       self.timeVector = case.TimestepValues
     elif self.ext == '.vtu':
       case = XMLUnstructuredGridReader( FileName=fileName )
