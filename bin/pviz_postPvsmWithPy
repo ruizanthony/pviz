@@ -1,0 +1,43 @@
+#!/bin/bash
+if [ $# -eq 0 ]; then
+  echo "
+    Load a paraview state file (pvsm). Apply python script on it.
+    Loop over a list of file.
+    Useful for advanced postprocessing (sweeps of q-crit isocontour,
+    1D cuts in normal of an isocontour)
+    usage: 
+      pviz_postPvsmWithPy ncpus stateFile pyFile *.xmf
+
+    for instance:
+      pviz_postPvsm 48 myRefState.pvsm $PVIZ/examples/advanced/restoreState_SweepQcrit.py *.xmf
+    exiting ..."
+  exit
+fi
+ncpus=$1
+stateFile=$2
+pyFile=$3
+shift 3 # Remove ncpus, stateFile and pyFile from $@
+
+# Test if pvsm is correctly prepared. If not, prepare it!
+grep -q solut.xdmf "$stateFile" # $?=1 if pattern not found
+if [ $? -eq 1 ] ; then
+  pviz_pvsmPrepare $stateFile 
+fi
+
+# If MAC OS X, use graphics card (offscreen-rendering doesnt work well on mac)
+if [ "`uname`" == Darwin ]; then offscreen=""
+else                             offscreen="--use-offscreen-rendering"
+fi
+
+for solution in $@; do
+  mpirun -np $ncpus pvbatch $offscreen $pyFile -t $stateFile  -s $solution
+done
+
+myBaseName=`basename $stateFile`
+myBaseNameWoExt=${myBaseName%.pvsm}
+outName=PNGS_${myBaseNameWoExt}
+mkdir -p $outName
+mv *${myBaseNameWoExt}*.png $outName
+echo "Moved snapshot into $outName"
+# For pviz_multit, do not remove the state file just created by other simultaneous processes
+#rm *.pvsm

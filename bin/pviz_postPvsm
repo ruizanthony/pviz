@@ -1,0 +1,41 @@
+#!/bin/bash
+if [ $# -eq 0 ]; then
+  echo "
+    Apply a paraview state file (pvsm) on a list of file
+    and simply save the rendered scene to png tagged with
+    the same basename as original solution files
+    usage: 
+      pviz_postPvsm ncpus stateFile *.xmf
+
+    for instance:
+      pviz_postPvsm 48 $PVIZ/personal/cases/burner1/scene.pvsm *.xmf
+    exiting ..."
+  exit
+fi
+ncpus=$1
+stateFile=$2
+shift 2 # Remove ncpus and stateFile from $@
+
+# Test if pvsm is correctly prepared. If not, prepare it!
+grep -q solut.xdmf "$stateFile" # $?=1 if pattern not found
+if [ $? -eq 1 ] ; then
+  pviz_pvsmPrepare $stateFile 
+fi
+
+# If MAC OS X, use graphics card (offscreen-rendering doesnt work well on mac)
+if [ "`uname`" == Darwin ]; then offscreen=""
+else                             offscreen="--use-offscreen-rendering"
+fi
+
+for solution in $@; do
+  mpirun -np $ncpus pvbatch $offscreen $PVIZ/pviz.py restoreState -t $stateFile  -s $solution
+done
+
+myBaseName=`basename $stateFile`
+myBaseNameWoExt=${myBaseName%.pvsm}
+outName=PNGS_${myBaseNameWoExt}
+mkdir -p $outName
+mv *${myBaseNameWoExt}*.png $outName
+echo "Moved snapshot into $outName"
+# For pviz_multit, do not remove the state file just created by other simultaneous processes
+#rm *.pvsm
