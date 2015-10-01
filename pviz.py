@@ -23,6 +23,7 @@ white    = [1.0,1.0,1.0]
 darkGrey = [0.1,0.1,0.1]
 liteGrey = [0.9,0.9,0.9]
 blue     = [0.0,0.3,1.0]
+aqua     = [0.0,0.5,1.0]
 
 # Main Class: viz
 # Used to load your data and set default properties and filter
@@ -45,12 +46,11 @@ class viz:
       if not self.interactive: self.load()
       # GUI python shell: don't load the data, GetActiveSource instead
       else:                    self.loadInteractive()
-      # Create default bar attributes
-      self.barProperties = barProperties(logscale = self.logscale)
-
     # If state file is present, load it
     else:
       self.loadMyState()
+    # Create default bar attributes
+    self.barProperties = barProperties(logscale = self.logscale)
 
   def load(self):
     fileName = self.fileName
@@ -844,7 +844,7 @@ def makeClip(x=None,y=None,z=None,InsideOut=None,ClipType="Plane",Bounds=None):
       sys.exit()
     [xmin,xmax,ymin,ymax,zmin,zmax] = Bounds
     x05= 0.5*(xmin+xmax)
-    y05= 0.5*(xmin+xmax)
+    y05= 0.5*(ymin+ymax)
     z05= 0.5*(zmin+zmax)
     deltax= xmax-xmin
     deltay= ymax-ymin

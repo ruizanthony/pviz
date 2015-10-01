@@ -1,31 +1,22 @@
 #!/usr/bin/env pvbatch
 try: paraview.simple
 except: from paraview.simple import *
-from paraview_module import *
-
+import pviz
 import sys
 
-# __name__== "__main__" if batch. 
-# If interactive, dont load the solution but do
-# the rest of the postproc contained herein.
-if __name__== '__vtkconsole__' :
-  sys.argv = ['-i',1]
-  #sys.argv = ['-s','dtms_ave_001600_full.xmf']
+if __name__== '__vtkconsole__' : oviz=iviz() # for interactive sessions only
+else: oviz = pviz.viz(sys.argv)   # Instantiate a new visualisation
+isocontour=FindSource('isoqcrit') # Find the part named isoqcrit in state pipeline
 
-# Instantiate a new visualisation
-oviz = visu(sys.argv)
-# The state file has been loaded, and current view is the first one
-isocontour=FindSource('isoqcrit')
+# Bullet Time Inputs ----------------------------------------
+O= [ oviz.view.CameraPosition[0], oviz.view.CameraPosition[1], 0.0] # center of rotation in z=0 plane
+R= oviz.view.CameraPosition[2] # z-position is the radius of rotation around object
+axis='y' # rotation axis
+# -----------------------------------------------------------
 
-# For Bullet Time
-O= [ oviz.view.CameraPosition[0], oviz.view.CameraPosition[1], 0.0]
-R= oviz.view.CameraPosition[2]
-axis='y'
-
-# Qcrit
-qcritList=[0.5e10, 1e10, 2e10, 4e10, 6e10]
+qcritList=[1.0e7, 5.0e7, 1.0e8] # List of isovalues of explore 
 for n in range(len(qcritList)):
   isocontour.Isosurfaces = qcritList[n]
-  #              mystate        _       sol_000120_nval_      001  (nangle will be added in bulletTimeAnimation)
-  aBasename=oviz.stateBaseName+'_'+oviz.baseName+"_nval_"+str(n).zfill(3)
+  #              mystate_sol_000120_nval_001  (nangle will be added in bulletTimeAnimation)
+  aBasename='{:s}_{:s}_nval_{:03d}'.format(oviz.stateBaseName,oviz.baseName,n)
   oviz.bulletTimeAnimation(O,R,axis,baseName=aBasename,nFrames=20) # Save bullet time snapshots
