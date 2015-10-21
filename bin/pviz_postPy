@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 if [ $# -eq 0 ]; then
   echo "
     Run a pviz python script on a list of files.
@@ -20,8 +20,12 @@ if [ "`uname`" == Darwin ]; then offscreen=""
 else                             offscreen="--use-offscreen-rendering"
 fi
 
+if [ $ncpus -eq 1 ]; then pvbatch="pvbatch"
+else                      pvbatch="mpirun -np $ncpus pvbatch"
+fi
+
 for solution in $@; do
-  mpirun -np $ncpus pvbatch $offscreen $pyFile -s $solution
+  $pvbatch $offscreen $pyFile -s $solution
 done
 
 myBaseName=`basename $pyFile`
