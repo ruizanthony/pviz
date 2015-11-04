@@ -1,0 +1,56 @@
+#!/bin/bash
+
+if [ $# -lt 5 ]; then
+  echo "
+  Submits a batch pviz job (for pviz_postPy, pviz_postPvsm or pviz_postPvsmWithPy)
+  for a given host. A template batch file should be located in $PVIZ/personal/batch/\$host
+  with the following keys:  PVIZ_CMD, PVIZ_NCPUS, PVIZ_PVSM, PVIZ_FILES
+  See http://ruizanthony.net/pviz/docs/ or 
+  $PVIZ/examples/batch/ember  for examples of batch files
+
+  Usage: 
+    pviz_qsub host  cmd           ncpus  pyOrPvsm                           files
+
+  for instance:
+    pviz_qsub ember pviz_postPy   64     $PVIZ/examples/simple/cut_z0.py    *.xmf
+    pviz_qsub ember pviz_postPvsm 64     $PVIZ/personal/myCase/myState.pvsm *.xmf
+
+  NOTE: you can also use this script to start an interactive session in client/server
+  mode with pvserver:
+
+  pviz_qsub ember 'mpirun -np' 64 pvserver --use-offscreen-rendering
+
+  Then connect to first node (n42 in the example below, otherwise
+  pvserver tells you which node to connect to after starting (Std.out))
+  of your job in 'direct' connection from your laptop.
+  You will probably need to use a port forwarding command with ssh
+  to foward localhost:11111 to n45:11111 going through head node (ember here)
+
+  ssh -L 11111:n42:11111 amruiz@ember
+
+  exiting ...
+
+  "
+  exit
+fi
+
+host=$1
+cmd=$2
+ncpus=$3
+pyOrPvsm=$4
+shift 4 # remove the 4 first items from $@
+files="$@"
+
+template=$PVIZ/personal/batch/$host
+if [ ! -f $template ]; then
+  echo "
+  No template found here: $template
+  please create one. 
+  `pviz_qsub`" # this last line shows usage and exits
+  exit
+fi
+
+sed -e "s#PVIZ_CMD#$cmd#"    \
+    -e "s#PVIZ_NCPUS#$ncpus#" \
+    -e "s#PVIZ_PY_OR_PVSM#$pyOrPvsm#"  \
+    -e "s#PVIZ_FILES#$files#" $template | qsub

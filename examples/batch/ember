@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -V
+#PBS -N pviz
+#PBS -e Std.err
+#PBS -o Std.out
+#PBS -j oe # joins stdout and stderr
+#PBS -l nodes=1:ppn=64
+cd $PBS_O_WORKDIR
+export MV2_SUPPORT_DPM=1
+export MV2_IBA_HCA=mlx4_0
+module load paraview/4.0.1
+time PVIZ_CMD PVIZ_NCPUS PVIZ_PY_OR_PVSM PVIZ_FILES
