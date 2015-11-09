@@ -40,6 +40,8 @@ class viz:
     # Get file base name and extension except if interactive session
     if not self.interactive: self.baseName, self.ext = os.path.splitext(self.fileName)
 
+    self.stateBaseName = None # by default no stateBaseName
+
     # Load data if no state file is present
     if self.stateName == None:
       # loading data from the command line
@@ -102,10 +104,6 @@ class viz:
     if self.ext in ['.vts' , '.vtm', '.xmf' ,'.xdmf']:
       hidePart()
       case = mergeCleanD3() # This is an expensive macro (memory and CPU time), but it is necessary for clean cell2point
-      # IBC specific to raptor
-      ibcWallVarName='ibc_wall'
-      if ibcWallVarName in case.CellData.keys():
-        case = Threshold( Scalars=['CELLS', ibcWallVarName], ThresholdRange=[0.0, 0.1], AllScalars=1, UseContinuousCellRange=0 )
       if self.cell2point == 1:
         # Test if there is CellData, if so, transform it to PointData (linear variations of variables instead of piecewise constant)
         if len(case.CellData.values()) >= 1:
@@ -182,8 +180,11 @@ class viz:
   # and store multiple still images to create a Matrix-like animation
   # (so called bullet-time animation)
   def bulletTimeAnimation(self,O,R,axis,nFrames=20,baseName=None,view=None):
-
-      if baseName==None: baseName=self.stateBaseName+'_'+self.baseName
+      if baseName==None: 
+        if self.stateBaseName == None:
+          baseName=self.baseName                         # just use solution name
+        else:
+          baseName=self.stateBaseName+'_'+self.baseName  # state + solution name 
       if view    ==None: view    =self.view
 
       # This line is VERY important ... this store view into
@@ -435,15 +436,15 @@ class viz:
   def removeBar(self,bar):
     self.view.Representations.remove(bar)
 
-  def writeImage(self,tag):
+  def writeImage(self,varNameTag):
     Render() # Render the scene before writing image
     # If only one time step, use the solution name for the snapshots
     if len(self.timeVector) == 1:
-      imageName = self.path+"/"+tag+"_"+self.baseName+".png"
+      imageName = self.path+"/"+varNameTag+"_"+self.baseName+".png"
     # Else, multiple time steps: use _10000, _20000 ... zero padded on 9 digits
     else:
       stringNite = str( int(self.view.ViewTime) ).zfill(9) # zero padding
-      imageName = self.path+"/"+tag+"_"+stringNite+".png"
+      imageName = self.path+"/"+varNameTag+"_"+stringNite+".png"
     imageName=imageName.replace(" ","_") # Replace spaces by underscores
     print "Writing image ",imageName
     WriteImage(imageName, Magnification=self.quality )
@@ -750,9 +751,14 @@ def makeSphere(O,sphereRadius=0.1,sphereColor=[1,0,0]):
          sphereRep.DiffuseColor=sphereColor
          return oSphere
 
-def saveAllFields(fname=None,dataType='PointData',iBar=1):
-# To be used within paraview GUI: color current part by all variables, rescale
-# them with part min/max a save an image
+def saveAllFields(dataType='PointData',iBar=1,oviz=None):
+  '''
+  saveAllFields(dataType='PointData',iBar=0) # will add `interactive' in imageName
+  Can be used within paraview GUI: color current part by all variables, rescale
+  them with part min/max a save an image
+  saveAllFields(fName='/path/to/image.png',dataType='PointData',iBar=0) # will add `myTag' in imageName
+  '''
+  if oviz == None: oviz=iviz() # from the GUI you can call saveAllViews()
 
   part   = GetActiveSource()
   DataRep= GetDisplayProperties(part)
@@ -764,27 +770,46 @@ def saveAllFields(fname=None,dataType='PointData',iBar=1):
   else: print 'Error with dataType in saveAllFields, exiting ...'; sys.exit()
   print 'Values:',pd.values()
   for var in pd.values():
-    var_name = var.GetName()
-    DataRep.ColorArrayName = var_name   # Color By the variable
-    var_range = pd[var_name].GetRange() # Get the min max of the variable
-    # Create a "LookUpTable" <=> Legend info ( with min, max, and color scale attribute )
-    lut=MakeBlueToRedLT(var_range[0],var_range[1])
+    varName = var.GetName()
+    DataRep.ColorArrayName = varName   # Color By the variable
 
-    # Create a "Scalar Bar" <=> Printed Color Scale
+    # Update lookup table and add bar if iBar==1
     if iBar==1:
-      bar = CreateScalarBar(LookupTable=lut, Title=var_name, LabelColor=black, TitleColor=black )
+      var_range = pd[varName].GetRange() # Get the min max of the variable
+      # Create a "LookUpTable" <=> Legend info ( with min, max, and color scale attribute )
+      lut=MakeBlueToRedLT(var_range[0],var_range[1])
+
+      # Create a "Scalar Bar" <=> Printed Color Scale
+      bar = CreateScalarBar(LookupTable=lut, Title=varName, LabelColor=black, TitleColor=black )
       view.Representations.append(bar) # Add the Color Scale to the View
 
-    # Use the LookUpTable to specify the min, max and coloring of the variable
-    DataRep.LookupTable = lut
+      # Use the LookUpTable to specify the min, max and coloring of the variable
+      DataRep.LookupTable = lut
 
-    Render() # Apply
-    fileName = var_name+".png"
-    if not fname == None: fileName = fname+'_'+fileName
-    WriteImage(fileName)
+    # Find in the scalar widget representations which one to make visible
+    # only works if you let the title of scalar bar equal to defaul value
+    # which is the varName
+    else:
+      nviewRep=0
+      for viewRep in view.Representations:
+        try:
+          if viewRep.Title == varName:
+            viewRep.Visibility = 1                    # Set existing scalar bar visible
+            DataRep.LookupTable = viewRep.LookupTable # Apply lookup table (VERY IMPORTANT)
+            break                                     # exit this loop at first element found
+        except:
+          pass
+        nviewRep=nviewRep+1
 
-    # Remove the Scalar Bar before processing the other variables
-    if iBar==1: view.Representations.remove(bar)
+    print 'Rendering view and saving image for varName',varName
+    if oviz.stateBaseName == None:
+      varNameTag = varName
+    else:
+      varNameTag = oviz.stateBaseName+'_'+varName
+    oviz.writeImage(varNameTag)
+
+    if iBar==1: view.Representations.remove(bar) # Remove the Scalar Bar before processing the other variables
+    else      : viewRep.Visibility = 0           # Set existing scalar bar invisible
 
 def makeSlice(x=None,y=None,z=None):
   ''' Cut the domain with a 2D plane'''
@@ -934,6 +959,10 @@ def mergeCleanD3():
   MergeBlocks( MergePoints=1 )
   CleantoGrid()
   part=D3( BoundaryMode='Assign cells uniquely', MinimalMemory=0 ) # Data is redistributed to all procs
+  # IBC specific to raptor: remove wall cells and only keep fluid cells
+  ibcWallVarName='ibc_wall'
+  if ibcWallVarName in part.CellData.keys():
+    part = Threshold( Scalars=['CELLS', ibcWallVarName], ThresholdRange=[0.0, 0.1], AllScalars=1, UseContinuousCellRange=0 )
   if oriVisibility == 1: Show() # only show children if parent was visible (if not, we're doing statistical analysis and do not need viz)
   return part
 
@@ -957,13 +986,13 @@ def visualFilter(ntimes=1,dataType='PointData'):
 
 def restoreState_1view(args):
   oviz = viz(args)                    # instantiate viz object (and load data with state)
-  oviz.writeImage(oviz.stateBaseName) # save image with stateBaseName as a tag
+  oviz.writeImage(oviz.stateBaseName) # save image with stateBaseName as a varNameTag
 
 def restoreState(args):
   oviz  = viz(args)     # instantiate viz object (and load data with state)
-  saveAllViews(tag=oviz.stateBaseName,oviz=oviz)
+  saveAllViews(varNameTag=oviz.stateBaseName,oviz=oviz)
 
-def saveAllViews(tag=None,oviz=None):
+def saveAllViews(varNameTag=None,oviz=None):
   if oviz == None: oviz=iviz() # from the GUI you can call saveAllViews()
   views = GetRenderViews()  # Beware with ultiple views, scalar bars can be messed up
   nviews= len(views)
@@ -974,11 +1003,11 @@ def saveAllViews(tag=None,oviz=None):
       # what makes WriteImage and all the classical functions contained in simple.py work!
       SetActiveView(view)
 
-      tagview=tag
-      if tag == None:  tagview= "view"+str(n)
+      tagview=varNameTag
+      if varNameTag == None:  tagview= "view"+str(n)
       else:
-        if nviews >= 2: tagview=tag+"_view"+str(n)
-      oviz.writeImage(tagview) # save image with stateBaseName as a tag
+        if nviews >= 2: tagview=varNameTag+"_view"+str(n)
+      oviz.writeImage(tagview) # save image with stateBaseName as a varNameTag
       n=n+1
 
 # This create a viz object in interactive mode from the GUI
