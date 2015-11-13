@@ -102,7 +102,6 @@ class viz:
 
     # If multiblock solutions, ensure that block interfaces are not visible
     if self.ext in ['.vts' , '.vtm', '.xmf' ,'.xdmf']:
-      hidePart()
       case = mergeCleanD3() # This is an expensive macro (memory and CPU time), but it is necessary for clean cell2point
       if self.cell2point == 1:
         # Test if there is CellData, if so, transform it to PointData (linear variations of variables instead of piecewise constant)
@@ -773,6 +772,12 @@ def saveAllFields(dataType='PointData',iBar=1,oviz=None):
     varName = var.GetName()
     DataRep.ColorArrayName = varName   # Color By the variable
 
+    print 'Rendering view and saving image for varName',varName
+    if oviz.stateBaseName == None:
+      varNameTag = varName
+    else:
+      varNameTag = oviz.stateBaseName+'_'+varName
+
     # Update lookup table and add bar if iBar==1
     if iBar==1:
       var_range = pd[varName].GetRange() # Get the min max of the variable
@@ -785,31 +790,23 @@ def saveAllFields(dataType='PointData',iBar=1,oviz=None):
 
       # Use the LookUpTable to specify the min, max and coloring of the variable
       DataRep.LookupTable = lut
+      oviz.writeImage(varNameTag)
+      view.Representations.remove(bar) # Remove the Scalar Bar before processing the other variables
 
     # Find in the scalar widget representations which one to make visible
     # only works if you let the title of scalar bar equal to defaul value
     # which is the varName
     else:
-      nviewRep=0
       for viewRep in view.Representations:
         try:
           if viewRep.Title == varName:
             viewRep.Visibility = 1                    # Set existing scalar bar visible
             DataRep.LookupTable = viewRep.LookupTable # Apply lookup table (VERY IMPORTANT)
+            oviz.writeImage(varNameTag)               # write image
+            viewRep.Visibility = 0                    # Set existing scalar bar invisible
             break                                     # exit this loop at first element found
         except:
           pass
-        nviewRep=nviewRep+1
-
-    print 'Rendering view and saving image for varName',varName
-    if oviz.stateBaseName == None:
-      varNameTag = varName
-    else:
-      varNameTag = oviz.stateBaseName+'_'+varName
-    oviz.writeImage(varNameTag)
-
-    if iBar==1: view.Representations.remove(bar) # Remove the Scalar Bar before processing the other variables
-    else      : viewRep.Visibility = 0           # Set existing scalar bar invisible
 
 def makeSlice(x=None,y=None,z=None):
   ''' Cut the domain with a 2D plane'''
